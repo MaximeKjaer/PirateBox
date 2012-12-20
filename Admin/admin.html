@@ -1,0 +1,165 @@
+<html>
+<head>
+<script src="jquery.min.js"></script>
+<script src="ajaxsbmt.js"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+
+/// XMLHttpRequest ///
+xhr = new XMLHttpRequest();
+xhr.open("GET", "/cgi-bin/admin.py", false);
+xhr.send();
+
+
+
+//// PARSE RESULTS ////
+data = xhr.responseText;
+data = $.parseJSON(data);
+uptime1 = $.trim(data[0].uptime);
+cpustats = $.trim(data[0].cpustats);
+wireless = $.trim(data[0].wireless);
+ssid = $.trim(wireless.split('option ssid')[1].split('\n')[0].split("'").join(' '));
+
+
+//// INSERT VARIABLES ////
+document.getElementById("cpustats").innerText = cpustats;
+document.getElementById("wireless").innerText = wireless;
+document.getElementById("ssid").value = ssid;
+
+
+
+
+//// UPTIME AND IDLE VARIABLES. ////
+uptime = {};
+uptime.string = uptime1
+uptime.total = Number(uptime.string.split(' ')[0]);
+idle = {};
+idle.total = Number(uptime.string.split(' ')[1]);
+
+uptime.hours = 0;
+uptime.minutes = 0;
+uptime.seconds = 0;
+idle.hours = 0;
+idle.minutes = 0;
+idle.seconds = 0;
+
+//// TOTAL ////
+uptime.hours = (uptime.total - uptime.total%3600)/3600;
+uptime.minutes = (uptime.total - uptime.hours*3600 - uptime.total%60)/60;
+uptime.seconds = Math.round(uptime.total - uptime.hours*3600 - uptime.minutes*60);
+hours = uptime.hours;
+minutes = uptime.minutes;
+seconds = uptime.seconds;
+
+if (uptime.hours > 0) hours += " hour";
+if (uptime.hours >=2) hours += "s";
+if (uptime.minutes>0) minutes += " minute";
+if (uptime.minutes >= 2) minutes += "s";
+if (uptime.seconds>0) seconds += " second";
+if (uptime.seconds>=2) seconds += "s";
+
+if (uptime.hours == 0) hours = "";
+if (uptime.minutes == 0) minutes = "";
+if (uptime.seconds == 0) seconds = "";
+
+document.getElementById("uptime").innerText = hours +" "+ minutes +" "+ seconds;
+
+/// IDLE ///
+idle.hours = (idle.total - idle.total%3600)/3600;
+idle.minutes = (idle.total - idle.hours*3600 - idle.total%60)/60;
+idle.seconds = Math.round(idle.total - idle.hours*3600 - idle.minutes*60);
+hours = idle.hours;
+minutes = idle.minutes;
+seconds = idle.seconds;
+
+if (idle.hours > 0) hours += " hour";
+if (idle.hours >=2) hours += "s";
+if (idle.minutes>0) minutes += " minute";
+if (idle.minutes>=2) minutes += "s";
+if (idle.seconds>0) seconds += " second";
+if (idle.seconds>=2) seconds += "s";
+
+if (idle.hours == 0) hours = "";
+if (idle.minutes == 0) minutes = "";
+if (idle.seconds == 0) seconds = "";
+idleTimer(idle.hours, idle.minutes, idle.seconds);
+document.getElementById("idle").innerText = hours +" "+ minutes +" "+ seconds;
+});
+
+
+
+//// FUNCTIONS ////
+
+
+function idleTimer (hours, mins, secs) {
+secs = secs + 1;
+if (secs == 60) {
+ secs = 0;
+ mins = mins+1;
+}
+if (mins == 60) {
+ mins = 0;
+ hours = hours+1;
+}
+
+if (secs == 0) seconds = "";
+if (secs >  0) seconds = secs + " second";
+if (secs >= 2) seconds += "s";
+
+if (mins == 0) minutes = "";
+if (mins >  0) minutes = mins + " minute";
+if (mins >= 2) minutes += "s";
+
+if (hours == 0) Hours = "";
+if (hours >  0) Hours = hours + " hour";
+if (hours >= 2) Hours += "s";
+
+
+document.getElementById("idle").innerText = Hours + " " + minutes + " " + seconds;
+t = window.setTimeout("idleTimer("+ hours + ", "+ mins +", "+ secs +")", 1000);
+}
+
+function changeSSID() {
+new_config = wireless.split(ssid).join(document.getElementById("ssid").value);
+document.getElementById("wireless").innerText = new_config;
+}
+
+
+
+</script>
+<style type="text/css">
+div#box {
+  overflow: auto;
+  background-color: #222;
+  padding: 10px;
+  color:white;
+  height: 340px;
+  width: 750px;
+}
+</style>
+</head>
+<body>
+<b>Uptime: </b><span id="uptime"></span><br>
+<b>Idle:   </b><span id="idle"></span><br/>
+<br>
+<div id="box">
+<h4>CPU Stats:</h4>
+<pre id="cpustats"></pre>
+</div>
+<br><br>
+
+
+<form method="post" action="/cgi-bin/psowrte.py" target="wireless" name="ssidChange">
+
+<div id="box">
+<h4>Wireless Settings:</4>
+<pre id="wireless"></pre>
+<br><br>
+</div>
+
+
+<input type="text" id="ssid" />
+<input type="submit" value="Change"/>
+</form>
+</body>
+</html>
