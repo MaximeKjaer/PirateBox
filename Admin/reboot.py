@@ -1,5 +1,6 @@
 #!/usr/bin/python
 ##When called by the Admin-panel, reboots the PirateBox
+## Doesn't work yet.
 
 import subprocess, sys
 
